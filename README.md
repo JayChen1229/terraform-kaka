@@ -24,6 +24,9 @@
 用於產生非對稱加解密的公私鑰對。
 * **macOS**: `brew install age`
 * **Linux**: `sudo apt install age`
+  ```bash
+  https://github.com/FiloSottile/age/releases/download/v1.3.1/age-v1.3.1-linux-amd64.tar.gz
+  ```
 * **Windows**: `choco install age.portable`
 
 ### 3. Mozilla SOPS 安裝
