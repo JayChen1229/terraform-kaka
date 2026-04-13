@@ -1,0 +1,10 @@
+{
+  "archives": {
+    "linux_amd64": {
+      "hashes": [
+        "h1:2dWpkp5Atju6B7j3Cka+6WN+GLLi9OqWspnGVjGwLzU="
+      ],
+      "url": "terraform-provider-kafka_0.13.1_linux_amd64.zip"
+    }
+  }
+}

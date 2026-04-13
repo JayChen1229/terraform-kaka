@@ -1,0 +1,10 @@
+{
+  "archives": {
+    "linux_amd64": {
+      "hashes": [
+        "h1:HyIxpskyTiLdJhGFJYzCk45IsG7zMe3K+y7em3k23BE="
+      ],
+      "url": "terraform-provider-sops_1.4.1_linux_amd64.zip"
+    }
+  }
+}

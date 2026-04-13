@@ -304,7 +304,7 @@ YAML_EOF
                         export TF_VAR_kafka_sasl_username="\${KAFKA_ADMIN_USER}"
                         export TF_VAR_kafka_sasl_password="\${KAFKA_ADMIN_PASS}"
 
-                        terraform init -input=false
+                        terraform init -input=false -plugin-dir="\$(pwd)/terraform-provider-plugins"
                     """
                 }
             }
