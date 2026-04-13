@@ -1,0 +1,15 @@
+password: test123
+
+manage_topics:
+  UP9999_order_events:
+    partitions: 12
+  UP9999_error_logs:
+    partitions: 3
+  UP9999_error_logs2:
+    partitions: 3
+
+extra_read_topics:
+  - public_news_topic
+
+extra_write_topics:
+  - test_topic

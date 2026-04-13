@@ -1,0 +1,32 @@
+password: ENC[AES256_GCM,data:jDgfHBFTjw==,iv:vCc7bsCMrAc2y8VuBg8HTn0QNC0n3SFSUOvVOX5OnJc=,tag:2gS4/wWpc9ja6KubHx6e8A==,type:str]
+manage_topics:
+    UP9999_order_events:
+        partitions: 12
+    UP9999_error_logs2:
+        partitions: 3
+    UP9999_api_test:
+        partitions: 3
+    UP9999_api_test2:
+        partitions: 3
+        config:
+            max.message.bytes: "556888"
+extra_read_topics:
+    - public_news_topic
+extra_write_topics:
+    - test_topic
+sops:
+    age:
+        - recipient: age16d6e29v4f2ytcxp0kwl8f6jahxx30ymx79k0gusdsdl6zffe2gsq3ua8ja
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBwK083bVRJaXpjUUwweWcz
+            SzQyK2NleDBTdHlYNkprSGFKZ0wzSnhabzNvCll4eTVzb1dnRnFMbHA0cWRvcCti
+            cUNHVXJubGF3R21MTExaSmJZay9hV2MKLS0tIDNUSDY2ZlR0azVNdnhIaWpVUnNW
+            MTg3OHJ4NEZnK1IxUExvRU1pcnV1TXcKzBWZno2kWEP9npaJhZnM0SbdWnD1Ut19
+            Be0Jz4iYWhCq4ZlZjsmJnqFUq4itdyoMuxQknYJWWBaQThMZ9f1LHg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-04-13T02:08:26Z"
+    mac: ENC[AES256_GCM,data:qWv+8pPTu9VSfGdZRO+8Ecl7MqH1VL49XCMMC0zREgkOHTs+qUreFKuiMtzdrNV/gG4CdGLCFcejC4AzTfDeNwoCNIewqHM9JUHaKOLCbwHfjczpJnioK4gTKPeRcetbZwQJKpdpS2bYsp5laDL36biRJH3h6CjPgFBpCuW9DgQ=,iv:UjMQkJml8mN4fNJwQTQG9cHffZ8baRpCJ0WAgivuE3k=,tag:T4k1ni0A1NNcOEiyfAQ54A==,type:str]
+    encrypted_regex: ^(password)$
+    mac_only_encrypted: true
+    version: 3.12.2
