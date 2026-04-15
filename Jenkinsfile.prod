@@ -1,0 +1,115 @@
+pipeline {
+    agent any
+
+    options {
+        ansiColor('xterm')
+    }
+
+    environment {
+        GITLAB_PROJECT_ID  = 'test-group5015415%2Fterraform'
+        GITLAB_REPO_URL    = 'https://gitlab.com/test-group5015415/terraform.git'
+        ENV                = 'PROD'
+        TF_VAR_environment = 'PROD'
+    }
+
+    stages {
+        // =====================================================================
+        // Stage 1: Checkout（從 GitLab 拉最新 YAML）
+        // =====================================================================
+        stage('Checkout') {
+            steps {
+                checkout scm
+                sh 'git restore . && git clean -fd -e .terraform/'
+            }
+        }
+
+        // =====================================================================
+        // Stage 2: Terraform (Init → Validate → Plan)
+        // =====================================================================
+        stage('Terraform Plan') {
+            steps {
+                withCredentials([
+                    usernamePassword(credentialsId: 'GitLab',      usernameVariable: 'TF_HTTP_USERNAME', passwordVariable: 'TF_HTTP_PASSWORD'),
+                    usernamePassword(credentialsId: 'kafka-admin',  usernameVariable: 'KAFKA_ADMIN_USER', passwordVariable: 'KAFKA_ADMIN_PASS'),
+                    string(credentialsId: 'sops-age-key', variable: 'SOPS_AGE_KEY')
+                ]) {
+                    sh """
+                        # ===== 環境變數 =====
+                        export TF_HTTP_ADDRESS="https://gitlab.com/api/v4/projects/\${GITLAB_PROJECT_ID}/terraform/state/confluent-prod"
+                        export TF_HTTP_LOCK_ADDRESS="\${TF_HTTP_ADDRESS}/lock"
+                        export TF_HTTP_UNLOCK_ADDRESS="\${TF_HTTP_ADDRESS}/lock"
+                        export TF_HTTP_LOCK_METHOD="POST"
+                        export TF_HTTP_UNLOCK_METHOD="DELETE"
+                        export TF_VAR_kafka_sasl_username="\${KAFKA_ADMIN_USER}"
+                        export TF_VAR_kafka_sasl_password="\${KAFKA_ADMIN_PASS}"
+
+                        # ===== Init =====
+                        echo "====================================="
+                        echo "🔧 Terraform Init — ENV: PROD"
+                        echo "====================================="
+                        terraform init -input=false -plugin-dir="\$(pwd)/terraform-provider-plugins"
+
+                        # ===== Validate =====
+                        echo "✅ Validating Terraform configuration..."
+                        terraform validate
+
+                        # ===== Plan =====
+                        echo "📋 Running Terraform Plan..."
+                        terraform plan \\
+                            -var-file="envs/PROD.tfvars" \\
+                            -out=tfplan \\
+                            -input=false
+                    """
+                }
+            }
+        }
+
+        // =====================================================================
+        // Stage 3: 人工確認（Plan 結果確認後才繼續 Apply）
+        // =====================================================================
+        stage('Approval') {
+            steps {
+                input message: '⚠️ 請確認以上 Terraform Plan 結果，確定要 Apply 到 PROD 嗎？',
+                      ok: '✅ 確認 Apply'
+            }
+        }
+
+        // =====================================================================
+        // Stage 4: Terraform Apply
+        // =====================================================================
+        stage('Terraform Apply') {
+            steps {
+                withCredentials([
+                    usernamePassword(credentialsId: 'GitLab',      usernameVariable: 'TF_HTTP_USERNAME', passwordVariable: 'TF_HTTP_PASSWORD'),
+                    usernamePassword(credentialsId: 'kafka-admin',  usernameVariable: 'KAFKA_ADMIN_USER', passwordVariable: 'KAFKA_ADMIN_PASS'),
+                    string(credentialsId: 'sops-age-key', variable: 'SOPS_AGE_KEY')
+                ]) {
+                    sh """
+                        export TF_HTTP_ADDRESS="https://gitlab.com/api/v4/projects/\${GITLAB_PROJECT_ID}/terraform/state/confluent-prod"
+                        export TF_HTTP_LOCK_ADDRESS="\${TF_HTTP_ADDRESS}/lock"
+                        export TF_HTTP_UNLOCK_ADDRESS="\${TF_HTTP_ADDRESS}/lock"
+                        export TF_HTTP_LOCK_METHOD="POST"
+                        export TF_HTTP_UNLOCK_METHOD="DELETE"
+                        export TF_VAR_kafka_sasl_username="\${KAFKA_ADMIN_USER}"
+                        export TF_VAR_kafka_sasl_password="\${KAFKA_ADMIN_PASS}"
+
+                        echo "🚀 Applying Terraform changes on PROD..."
+                        terraform apply -input=false tfplan
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "🏁 PROD Pipeline 執行完畢"
+        }
+        success {
+            echo "✅ PROD Apply 成功！"
+        }
+        failure {
+            echo "❌ PROD Apply 失敗！請檢查 log。"
+        }
+    }
+}

@@ -281,9 +281,13 @@ YAML_EOF
         }
 
         // =====================================================================
-        // Stage 3: Terraform Init
+        // Stage 3: Terraform (Init → Validate → Plan → Apply)
+        // PROD 環境跳過此 stage — 由營運機手動執行
         // =====================================================================
-        stage('Terraform Init') {
+        stage('Terraform') {
+            when {
+                expression { params.ENV != 'PROD' }
+            }
             steps {
                 withCredentials([
                     usernamePassword(credentialsId: 'GitLab',      usernameVariable: 'TF_HTTP_USERNAME', passwordVariable: 'TF_HTTP_PASSWORD'),
@@ -291,90 +295,34 @@ YAML_EOF
                     string(credentialsId: 'sops-age-key', variable: 'SOPS_AGE_KEY')
                 ]) {
                     sh """
+                        # ===== 環境變數（只設一次）=====
+                        export TF_HTTP_ADDRESS="https://gitlab.com/api/v4/projects/\${GITLAB_PROJECT_ID}/terraform/state/confluent-${params.ENV.toLowerCase()}"
+                        export TF_HTTP_LOCK_ADDRESS="\${TF_HTTP_ADDRESS}/lock"
+                        export TF_HTTP_UNLOCK_ADDRESS="\${TF_HTTP_ADDRESS}/lock"
+                        export TF_HTTP_LOCK_METHOD="POST"
+                        export TF_HTTP_UNLOCK_METHOD="DELETE"
+                        export TF_VAR_kafka_sasl_username="\${KAFKA_ADMIN_USER}"
+                        export TF_VAR_kafka_sasl_password="\${KAFKA_ADMIN_PASS}"
+
+                        # ===== Init =====
                         echo "====================================="
                         echo "🔧 Terraform Init — ENV: ${params.ENV}"
                         echo "====================================="
-
-                        export TF_HTTP_ADDRESS="https://gitlab.com/api/v4/projects/\${GITLAB_PROJECT_ID}/terraform/state/confluent-${params.ENV.toLowerCase()}"
-                        export TF_HTTP_LOCK_ADDRESS="\${TF_HTTP_ADDRESS}/lock"
-                        export TF_HTTP_UNLOCK_ADDRESS="\${TF_HTTP_ADDRESS}/lock"
-                        export TF_HTTP_LOCK_METHOD="POST"
-                        export TF_HTTP_UNLOCK_METHOD="DELETE"
-
-                        export TF_VAR_kafka_sasl_username="\${KAFKA_ADMIN_USER}"
-                        export TF_VAR_kafka_sasl_password="\${KAFKA_ADMIN_PASS}"
-
                         terraform init -input=false -plugin-dir="\$(pwd)/terraform-provider-plugins"
-                    """
-                }
-            }
-        }
 
-        // =====================================================================
-        // Stage 4: Terraform Validate
-        // =====================================================================
-        stage('Terraform Validate') {
-            steps {
-                sh '''
-                    echo "✅ Validating Terraform configuration..."
-                    terraform validate
-                '''
-            }
-        }
+                        # ===== Validate =====
+                        echo "✅ Validating Terraform configuration..."
+                        terraform validate
 
-        // =====================================================================
-        // Stage 5: Terraform Plan
-        // =====================================================================
-        stage('Terraform Plan') {
-            steps {
-                withCredentials([
-                    usernamePassword(credentialsId: 'GitLab',      usernameVariable: 'TF_HTTP_USERNAME', passwordVariable: 'TF_HTTP_PASSWORD'),
-                    usernamePassword(credentialsId: 'kafka-admin',  usernameVariable: 'KAFKA_ADMIN_USER', passwordVariable: 'KAFKA_ADMIN_PASS'),
-                    string(credentialsId: 'sops-age-key', variable: 'SOPS_AGE_KEY')
-                ]) {
-                    sh """
+                        # ===== Plan =====
                         echo "📋 Running Terraform Plan..."
-
-                        export TF_HTTP_ADDRESS="https://gitlab.com/api/v4/projects/\${GITLAB_PROJECT_ID}/terraform/state/confluent-${params.ENV.toLowerCase()}"
-                        export TF_HTTP_LOCK_ADDRESS="\${TF_HTTP_ADDRESS}/lock"
-                        export TF_HTTP_UNLOCK_ADDRESS="\${TF_HTTP_ADDRESS}/lock"
-                        export TF_HTTP_LOCK_METHOD="POST"
-                        export TF_HTTP_UNLOCK_METHOD="DELETE"
-
-                        export TF_VAR_kafka_sasl_username="\${KAFKA_ADMIN_USER}"
-                        export TF_VAR_kafka_sasl_password="\${KAFKA_ADMIN_PASS}"
-
                         terraform plan \\
                             -var-file="envs/${params.ENV}.tfvars" \\
                             -out=tfplan \\
                             -input=false
-                    """
-                }
-            }
-        }
 
-        // =====================================================================
-        // Stage 6: Terraform Apply
-        // =====================================================================
-        stage('Terraform Apply') {
-            steps {
-                withCredentials([
-                    usernamePassword(credentialsId: 'GitLab',      usernameVariable: 'TF_HTTP_USERNAME', passwordVariable: 'TF_HTTP_PASSWORD'),
-                    usernamePassword(credentialsId: 'kafka-admin',  usernameVariable: 'KAFKA_ADMIN_USER', passwordVariable: 'KAFKA_ADMIN_PASS'),
-                    string(credentialsId: 'sops-age-key', variable: 'SOPS_AGE_KEY')
-                ]) {
-                    sh """
+                        # ===== Apply =====
                         echo "🚀 Applying Terraform changes on ${params.ENV}..."
-
-                        export TF_HTTP_ADDRESS="https://gitlab.com/api/v4/projects/\${GITLAB_PROJECT_ID}/terraform/state/confluent-${params.ENV.toLowerCase()}"
-                        export TF_HTTP_LOCK_ADDRESS="\${TF_HTTP_ADDRESS}/lock"
-                        export TF_HTTP_UNLOCK_ADDRESS="\${TF_HTTP_ADDRESS}/lock"
-                        export TF_HTTP_LOCK_METHOD="POST"
-                        export TF_HTTP_UNLOCK_METHOD="DELETE"
-
-                        export TF_VAR_kafka_sasl_username="\${KAFKA_ADMIN_USER}"
-                        export TF_VAR_kafka_sasl_password="\${KAFKA_ADMIN_PASS}"
-
                         terraform apply -input=false tfplan
                     """
                 }
@@ -382,7 +330,9 @@ YAML_EOF
         }
 
         // =====================================================================
-        // Stage 7: Git Push (Apply 成功後才推回 GitLab)
+        // Stage 4: Git Push
+        // DEV/SIT/UAT: Terraform Apply 成功後才推回 GitLab
+        // PROD:        只 commit YAML 後直接推送（不跑 Terraform）
         // =====================================================================
         stage('Git Push') {
             when {
