@@ -6,9 +6,10 @@
 # =============================================================================
 
 resource "kafka_user_scram_credential" "users" {
-  for_each = local.tenants
+  for_each = nonsensitive(local.tenants)
 
   username        = each.key
   scram_mechanism = "SCRAM-SHA-256"
   password        = each.value.password
 }
+

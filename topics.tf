@@ -9,7 +9,7 @@
 
 resource "kafka_topic" "managed" {
   for_each = {
-    for t in local.managed_topics : t.topic => t
+    for t in nonsensitive(local.managed_topics) : t.topic => t
   }
 
   name               = each.value.topic
@@ -18,3 +18,4 @@ resource "kafka_topic" "managed" {
 
   config = each.value.config
 }
+

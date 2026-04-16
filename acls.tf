@@ -2,13 +2,9 @@
 # Kafka ACLs — 傳統 ACL 管理機制
 # =============================================================================
 
-# ---------------------------------------------------------------------------
-# 寫入權限 (原 DeveloperWrite): 包含 Write, Describe
-# ---------------------------------------------------------------------------
-
 # A1. 前綴匹配寫入 (Write)
 resource "kafka_acl" "prefix_write_op" {
-  for_each = local.tenants
+  for_each = nonsensitive(local.tenants) # 修改這裡
 
   resource_name                = "${each.key}_"
   resource_type                = "Topic"
@@ -21,7 +17,7 @@ resource "kafka_acl" "prefix_write_op" {
 
 # A2. 前綴匹配寫入 (Describe)
 resource "kafka_acl" "prefix_write_describe" {
-  for_each = local.tenants
+  for_each = nonsensitive(local.tenants) # 修改這裡
 
   resource_name                = "${each.key}_"
   resource_type                = "Topic"
@@ -32,11 +28,10 @@ resource "kafka_acl" "prefix_write_describe" {
   acl_permission_type          = "Allow"
 }
 
-
 # B1. 特定 Topic 寫入 (Write)
 resource "kafka_acl" "specific_write_op" {
   for_each = {
-    for x in local.specific_writes : "${x.user}_write_${x.topic}" => x
+    for x in nonsensitive(local.specific_writes) : "${x.user}_write_${x.topic}" => x
   }
 
   resource_name                = each.value.topic
@@ -51,7 +46,7 @@ resource "kafka_acl" "specific_write_op" {
 # B2. 特定 Topic 寫入 (Describe)
 resource "kafka_acl" "specific_write_describe" {
   for_each = {
-    for x in local.specific_writes : "${x.user}_write_${x.topic}" => x
+    for x in nonsensitive(local.specific_writes) : "${x.user}_write_${x.topic}" => x
   }
 
   resource_name                = each.value.topic
@@ -63,13 +58,9 @@ resource "kafka_acl" "specific_write_describe" {
   acl_permission_type          = "Allow"
 }
 
-# ---------------------------------------------------------------------------
-# 讀取權限 (原 DeveloperRead): 包含 Read, Describe, 以及 ConsumerGroup 讀取
-# ---------------------------------------------------------------------------
-
 # C1. 前綴匹配讀取 (Read)
 resource "kafka_acl" "prefix_read_op" {
-  for_each = local.tenants
+  for_each = nonsensitive(local.tenants) # 修改這裡
 
   resource_name                = "${each.key}_"
   resource_type                = "Topic"
@@ -82,7 +73,7 @@ resource "kafka_acl" "prefix_read_op" {
 
 # C2. 前綴匹配讀取 (Describe)
 resource "kafka_acl" "prefix_read_describe" {
-  for_each = local.tenants
+  for_each = nonsensitive(local.tenants) # 修改這裡
 
   resource_name                = "${each.key}_"
   resource_type                = "Topic"
@@ -93,9 +84,9 @@ resource "kafka_acl" "prefix_read_describe" {
   acl_permission_type          = "Allow"
 }
 
-# C3. Consumer Group 讀取 (極重要：傳統 ACL 中 Consumer 必須具備 Group 權限)
+# C3. Consumer Group 讀取
 resource "kafka_acl" "prefix_group_read" {
-  for_each = local.tenants
+  for_each = nonsensitive(local.tenants) # 修改這裡
 
   resource_name                = "${each.key}_"
   resource_type                = "Group"
@@ -109,7 +100,7 @@ resource "kafka_acl" "prefix_group_read" {
 # D1. 特定 Topic 讀取 (Read)
 resource "kafka_acl" "specific_read_op" {
   for_each = {
-    for x in local.specific_reads : "${x.user}_read_${x.topic}" => x
+    for x in nonsensitive(local.specific_reads) : "${x.user}_read_${x.topic}" => x
   }
 
   resource_name                = each.value.topic
@@ -124,7 +115,7 @@ resource "kafka_acl" "specific_read_op" {
 # D2. 特定 Topic 讀取 (Describe)
 resource "kafka_acl" "specific_read_describe" {
   for_each = {
-    for x in local.specific_reads : "${x.user}_read_${x.topic}" => x
+    for x in nonsensitive(local.specific_reads) : "${x.user}_read_${x.topic}" => x
   }
 
   resource_name                = each.value.topic

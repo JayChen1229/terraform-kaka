@@ -308,7 +308,7 @@ YAML_EOF
                         echo "====================================="
                         echo "🔧 Terraform Init — ENV: ${params.ENV}"
                         echo "====================================="
-                        terraform init -input=false -plugin-dir="\$(pwd)/terraform-provider-plugins"
+                        terraform init -input=false
 
                         # ===== Validate =====
                         echo "✅ Validating Terraform configuration..."
