@@ -1,0 +1,23 @@
+# =======================
+# Tenant: UP9998
+# =======================
+password: ENC[AES256_GCM,data:qOaikg==,iv:PWr/qkuOGvKKXMnySYUG7800l7uCjUdIASj64ORAhv4=,tag:yDgWLSAx3am9EQxAIlzu1A==,type:str]
+manage_topics: {}
+extra_read_topics: []
+extra_write_topics: []
+sops:
+    age:
+        - recipient: age16d6e29v4f2ytcxp0kwl8f6jahxx30ymx79k0gusdsdl6zffe2gsq3ua8ja
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBaSm9RYkt4WCt2dlc4NFJa
+            YmZaTjhQUVR6U2VMZk5xd2wwVjNCR0xYQkZFClNtbE1ERDZrdU5tOWQwYzRndUtI
+            bWNJajlVQkRUVjBwWTZxbGFraDIxd00KLS0tIE1pQWJ3MU5KWXU2MXRHUEFyT1RG
+            V252VnNCcmtTSUNVM1ZucSt4VVpqVGMK4f5vehD9qoCoY1F7h3EdE94s5bnGWsuB
+            /V4iHeN81A4z8+N7j8WG6kMjiXoQQr27HzwbmvGimbw83mVLsSqb4g==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-04-16T07:06:13Z"
+    mac: ENC[AES256_GCM,data:XzeN5r0yPMkwIEnl9aOTqppRhox5JOU6HZXdNo8X+KRyRFVs5yXRFTGDiy+/4jFbTqkCPngCE/5XdankZCftteqzENBspQXYrlweX5JQZHeijzXe84FD+9r0bcb0lVkzLn5Fe0imI0lyh3RuC1hPCCVrTV8Hazx3LpLK1ceVgxo=,iv:4KOVQsrD2jLIWkMuP+nXMupczC50wWz/kEXAa6JyjiM=,tag:XoPEsP1GS9rY6GLEz8xMpg==,type:str]
+    encrypted_regex: ^(password)$
+    mac_only_encrypted: true
+    version: 3.12.2

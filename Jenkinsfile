@@ -116,7 +116,7 @@ pipeline {
 # =======================
 # Tenant: ${userAccount}
 # =======================
-password: ${params.USER_PASSWORD}
+password: '${params.USER_PASSWORD}'
 manage_topics: {}
 extra_read_topics: []
 extra_write_topics: []
