@@ -476,7 +476,7 @@ func runConsume(args []string) {
 			fmt.Println(msg.ValueString())
 		} else {
 			fmt.Printf("[%s] partition=%d offset=%d key=%s | %s\n",
-				msgTime.Format("15:04:05"),
+				msgTime.Format("2006-01-02 15:04:05"),
 				msg.Partition, msg.Offset,
 				msg.KeyString(), msg.ValueString(),
 			)
